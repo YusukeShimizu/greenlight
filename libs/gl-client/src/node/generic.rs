@@ -66,6 +66,19 @@ where
     }
 
     // TODO Add a `streaming_call` for methods that return a stream to the client
+
+    /// Set the maximum allowed size for decoded messages.
+    ///
+    /// This forwards to the underlying [`tonic::client::Grpc`] instance
+    /// and returns `self`, enabling the same fluent builder pattern as
+    /// the generated `tonic` clients.
+    pub fn max_decoding_message_size(mut self, limit: usize) -> Self
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+    {
+        self.inner = self.inner.max_decoding_message_size(limit);
+        self
+    }
 }
 
 /// `tonic::client::Grpc<T>` requires a codec to convert between the

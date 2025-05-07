@@ -9,6 +9,8 @@ use log::{debug, info, trace};
 use tonic::transport::{Channel, Uri};
 use tower::ServiceBuilder;
 
+const MAX_DECODING_MESSAGE_SIZE: usize = 32 * 1024 * 1024; // 32 MiB
+
 /// A client to the remotely running node on the greenlight
 /// infrastructure. It is configured to authenticate itself with the
 /// device mTLS keypair and will sign outgoing requests with the same
@@ -38,19 +40,19 @@ pub struct Node {
 
 impl GrpcClient for Client {
     fn new_with_inner(inner: service::AuthService) -> Self {
-        Client::new(inner)
+        Client::new(inner).max_decoding_message_size(MAX_DECODING_MESSAGE_SIZE)
     }
 }
 
 impl GrpcClient for GClient {
     fn new_with_inner(inner: service::AuthService) -> Self {
-        GenericClient::new(inner)
+        GenericClient::new(inner).max_decoding_message_size(MAX_DECODING_MESSAGE_SIZE)
     }
 }
 
 impl GrpcClient for ClnClient {
     fn new_with_inner(inner: service::AuthService) -> Self {
-        ClnClient::new(inner)
+        ClnClient::new(inner).max_decoding_message_size(MAX_DECODING_MESSAGE_SIZE)
     }
 }
 
@@ -61,11 +63,7 @@ impl Node {
     {
         let tls = creds.tls_config();
         let rune = creds.rune();
-        Ok(Node {
-            node_id,
-            tls,
-            rune,
-        })
+        Ok(Node { node_id, tls, rune })
     }
 
     pub async fn connect<C>(&self, node_uri: String) -> Result<C>
